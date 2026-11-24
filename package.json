@@ -1,0 +1,13 @@
+{
+  "name": "bandung-static-vector-tiles",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend MVT statis XYZ untuk contoh data Kota Bandung",
+  "scripts": {
+    "generate-tiles": "node scripts/generate-tiles.js"
+  },
+  "dependencies": {
+    "geojson-vt": "^4.0.2",
+    "vt-pbf": "^3.1.3"
+  }
+}

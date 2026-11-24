@@ -1,0 +1,161 @@
+{
+  "type": "FeatureCollection",
+  "name": "bandung-sample",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gedung Sate",
+        "kind": "point",
+        "category": "landmark"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [107.6186, -6.9025]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Alun-Alun Bandung",
+        "kind": "point",
+        "category": "public-space"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [107.6098, -6.9219]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kebun Binatang Bandung",
+        "kind": "point",
+        "category": "landmark"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [107.6069, -6.8888]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Stasiun Bandung",
+        "kind": "point",
+        "category": "transport"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [107.6008, -6.9147]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Taman Tegalega",
+        "kind": "polygon",
+        "category": "park"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [107.6034, -6.9408],
+          [107.6108, -6.9408],
+          [107.6108, -6.9470],
+          [107.6034, -6.9470],
+          [107.6034, -6.9408]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lapangan Gasibu",
+        "kind": "polygon",
+        "category": "public-space"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [107.6175, -6.8988],
+          [107.6206, -6.8988],
+          [107.6206, -6.9009],
+          [107.6175, -6.9009],
+          [107.6175, -6.8988]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Taman Lansia",
+        "kind": "polygon",
+        "category": "park"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [107.6201, -6.9051],
+          [107.6234, -6.9051],
+          [107.6234, -6.9078],
+          [107.6201, -6.9078],
+          [107.6201, -6.9051]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jalur pusat kota",
+        "kind": "line",
+        "category": "route"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [107.5935, -6.9148],
+          [107.6030, -6.9149],
+          [107.6098, -6.9219],
+          [107.6172, -6.9162],
+          [107.6242, -6.9098]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jalur utara-selatan",
+        "kind": "line",
+        "category": "route"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [107.6108, -6.8790],
+          [107.6124, -6.8920],
+          [107.6098, -6.9030],
+          [107.6098, -6.9219],
+          [107.6070, -6.9360]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jalur timur",
+        "kind": "line",
+        "category": "route"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [107.6175, -6.8988],
+          [107.6250, -6.9000],
+          [107.6320, -6.9075],
+          [107.6400, -6.9140]
+        ]
+      }
+    }
+  ]
+}

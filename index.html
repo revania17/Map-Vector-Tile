@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Eksplorasi static Map Vector Tile Kota Bandung dengan XYZ tiles."
+    >
+    <title>Bandung MVT Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    >
+    <link
+      href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css"
+      rel="stylesheet"
+    >
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #17212b;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      .map-card {
+        position: absolute;
+        z-index: 2;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.84);
+        box-shadow:
+          0 12px 36px rgba(27, 44, 58, 0.12),
+          0 2px 8px rgba(27, 44, 58, 0.06);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+
+      .info-card {
+        top: 20px;
+        left: 20px;
+        width: min(340px, calc(100vw - 40px));
+        padding: 18px;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 13px;
+        background: linear-gradient(145deg, #10b981, #0f766e);
+        color: #fff;
+        box-shadow: 0 5px 12px rgba(16, 185, 129, 0.24);
+      }
+
+      .brand-mark svg {
+        width: 23px;
+        height: 23px;
+      }
+
+      .eyebrow {
+        margin: 0 0 4px;
+        color: #0f8b68;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+
+      h1 {
+        margin: 0;
+        color: #18252d;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+      }
+
+      .subtitle {
+        margin: 5px 0 0;
+        color: #697780;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .telemetry {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 10px;
+        margin-top: 17px;
+      }
+
+      .metric {
+        min-width: 0;
+        padding: 11px 12px;
+        border: 1px solid rgba(224, 232, 235, 0.85);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .metric-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #79868e;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        display: block;
+        overflow: hidden;
+        color: #22313a;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .control-card {
+        bottom: 20px;
+        left: 20px;
+        width: min(340px, calc(100vw - 40px));
+        padding: 16px 18px 17px;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        color: #25343c;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #73818a;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      .live-indicator::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+        content: "";
+      }
+
+      .layer-list {
+        display: grid;
+        gap: 2px;
+      }
+
+      .layer-toggle,
+      .debug-toggle {
+        display: flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #394850;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .layer-toggle:hover,
+      .debug-toggle:hover {
+        color: #0f766e;
+      }
+
+      .layer-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .legend-mark {
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        flex: 0 0 auto;
+      }
+
+      .legend-mark.polygon {
+        border: 2px solid #047857;
+        border-radius: 3px;
+        background: rgba(16, 185, 129, 0.35);
+      }
+
+      .legend-mark.line {
+        height: 0;
+        border-top: 3px solid #4f46e5;
+        border-radius: 2px;
+      }
+
+      .legend-mark.point {
+        width: 11px;
+        height: 11px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #f43f5e;
+        box-shadow: 0 0 0 1px #f43f5e;
+      }
+
+      .layer-toggle input,
+      .debug-toggle input {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: #0f9f74;
+        cursor: pointer;
+      }
+
+      .control-divider {
+        height: 1px;
+        margin: 9px 0;
+        background: rgba(116, 132, 140, 0.17);
+      }
+
+      .debug-toggle {
+        min-height: 34px;
+      }
+
+      .debug-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .tile-icon {
+        width: 14px;
+        height: 14px;
+        border: 1.5px dashed #64748b;
+        border-radius: 2px;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 11px;
+      }
+
+      .reset-button {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 12px;
+        border: 1px solid rgba(15, 118, 110, 0.18);
+        border-radius: 9px;
+        background: #effaf6;
+        color: #0f766e;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        transition: background 150ms ease, transform 150ms ease;
+      }
+
+      .reset-button:hover {
+        transform: translateY(-1px);
+        background: #dff5ec;
+      }
+
+      .reset-button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid #10b981;
+        outline-offset: 3px;
+      }
+
+      .maplibregl-ctrl-top-right {
+        top: 18px;
+        right: 18px;
+      }
+
+      .maplibregl-ctrl-group {
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.88) !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.86) !important;
+        box-shadow: 0 6px 20px rgba(27, 44, 58, 0.12) !important;
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+
+      .maplibregl-popup-content {
+        min-width: 210px;
+        max-width: min(320px, calc(100vw - 40px));
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 14px 36px rgba(27, 44, 58, 0.2);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+
+      .maplibregl-popup-close-button {
+        top: 8px;
+        right: 9px;
+        width: 25px;
+        height: 25px;
+        border-radius: 7px;
+        color: #64748b;
+        font-size: 18px;
+      }
+
+      .maplibregl-popup-close-button:hover {
+        background: #edf3f3;
+        color: #17212b;
+      }
+
+      .feature-popup {
+        padding: 15px;
+      }
+
+      .feature-popup h3 {
+        max-width: 245px;
+        margin: 0 24px 12px 0;
+        color: #17212b;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .feature-popup dl {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 8px 14px;
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .feature-popup dt {
+        color: #74828a;
+        font-weight: 600;
+      }
+
+      .feature-popup dd {
+        min-width: 0;
+        margin: 0;
+        overflow-wrap: anywhere;
+        color: #26363e;
+        font-weight: 500;
+      }
+
+      @media (max-width: 560px) {
+        .info-card {
+          top: 12px;
+          left: 12px;
+          width: min(320px, calc(100vw - 24px));
+          padding: 14px;
+        }
+
+        .control-card {
+          bottom: 12px;
+          left: 12px;
+          width: min(320px, calc(100vw - 24px));
+          padding: 13px 15px 14px;
+        }
+
+        .maplibregl-ctrl-top-right {
+          top: 12px;
+          right: 12px;
+        }
+
+        .brand-mark {
+          width: 38px;
+          height: 38px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" aria-label="Peta tile vektor Kota Bandung"></div>
+
+    <section class="map-card info-card" aria-label="Informasi peta">
+      <div class="brand-row">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 6.5 9 4l6 2.5L20 4v13.5L15 20l-6-2.5L4 20V6.5Z"
+              stroke="currentColor"
+              stroke-linejoin="round"
+              stroke-width="1.7"
+            />
+            <path
+              d="M9 4v13.5M15 6.5V20"
+              stroke="currentColor"
+              stroke-width="1.7"
+            />
+            <circle cx="12" cy="11.5" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">VECTOR TILE LAB</p>
+          <h1>Bandung MVT Explorer</h1>
+          <p class="subtitle">Static XYZ Backend &bull; GitHub Pages</p>
+        </div>
+      </div>
+
+      <div class="telemetry" aria-live="polite">
+        <div class="metric">
+          <span class="metric-label">Zoom (z)</span>
+          <output class="metric-value" id="zoom-level">12.0</output>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Center Tile (z/x/y)</span>
+          <output class="metric-value" id="center-tile">12 / -- / --</output>
+        </div>
+      </div>
+    </section>
+
+    <section class="map-card control-card" aria-label="Kontrol layer dan debug">
+      <div class="section-heading">
+        <h2>Layer &amp; Debug</h2>
+        <span class="live-indicator">Interaktif</span>
+      </div>
+
+      <div class="layer-list">
+        <label class="layer-toggle" for="toggle-polygons">
+          <span class="layer-name">
+            <span class="legend-mark polygon" aria-hidden="true"></span>
+            Polygon
+          </span>
+          <input id="toggle-polygons" type="checkbox" checked>
+        </label>
+        <label class="layer-toggle" for="toggle-lines">
+          <span class="layer-name">
+            <span class="legend-mark line" aria-hidden="true"></span>
+            Polyline
+          </span>
+          <input id="toggle-lines" type="checkbox" checked>
+        </label>
+        <label class="layer-toggle" for="toggle-points">
+          <span class="layer-name">
+            <span class="legend-mark point" aria-hidden="true"></span>
+            Point
+          </span>
+          <input id="toggle-points" type="checkbox" checked>
+        </label>
+      </div>
+
+      <div class="control-divider"></div>
+
+      <label class="debug-toggle" for="toggle-tile-boundaries">
+        <span class="debug-name">
+          <span class="tile-icon" aria-hidden="true"></span>
+          Batas kotak tile
+        </span>
+        <input id="toggle-tile-boundaries" type="checkbox" checked>
+      </label>
+
+      <div class="actions">
+        <button class="reset-button" id="reset-camera" type="button">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 10a8 8 0 1 1 1.9 7.8M4 10V4m0 6h6"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
+          </svg>
+          Reset Kamera
+        </button>
+      </div>
+    </section>
+
+    <script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+    <script>
+      const initialCamera = {
+        center: [107.615, -6.915],
+        zoom: 12
+      };
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+        center: initialCamera.center,
+        zoom: initialCamera.zoom,
+        minZoom: 10,
+        maxZoom: 15
+      });
+
+      const relativeTileUrl = "./tiles/{z}/{x}/{y}.pbf";
+      const tileUrl =
+        new URL(".", window.location.href).href + relativeTileUrl.slice(2);
+      const zoomLevel = document.getElementById("zoom-level");
+      const centerTile = document.getElementById("center-tile");
+      const tileBoundariesToggle = document.getElementById(
+        "toggle-tile-boundaries"
+      );
+      const layerToggles = [
+        ["toggle-polygons", "bandung-polygons"],
+        ["toggle-lines", "bandung-lines"],
+        ["toggle-points", "bandung-points"]
+      ];
+      const interactiveLayers = [
+        "bandung-polygons",
+        "bandung-lines",
+        "bandung-points"
+      ];
+      let activePopup;
+
+      map.showTileBoundaries = true;
+      map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+      function updateTelemetry() {
+        const zoom = Math.floor(map.getZoom());
+        const tileCount = 2 ** zoom;
+        const center = map.getCenter();
+        const latitude = Math.max(
+          -85.0511287798066,
+          Math.min(85.0511287798066, center.lat)
+        );
+        const longitude = ((center.lng + 180) % 360 + 360) % 360;
+        const x = Math.floor(((longitude / 360) * tileCount) % tileCount);
+        const latitudeRadians = (latitude * Math.PI) / 180;
+        const mercatorY =
+          (1 - Math.asinh(Math.tan(latitudeRadians)) / Math.PI) / 2;
+        const y = Math.max(
+          0,
+          Math.min(tileCount - 1, Math.floor(mercatorY * tileCount))
+        );
+
+        zoomLevel.textContent = map.getZoom().toFixed(1);
+        centerTile.textContent = `${zoom} / ${x} / ${y}`;
+      }
+
+      function showFeaturePopup(event, feature, layerName) {
+        const properties = feature.properties || {};
+        const popupContent = document.createElement("div");
+        popupContent.className = "feature-popup";
+
+        const title = document.createElement("h3");
+        title.textContent = properties.name || layerName;
+        popupContent.appendChild(title);
+
+        const propertyList = document.createElement("dl");
+        Object.entries(properties).forEach(([key, value]) => {
+          const term = document.createElement("dt");
+          term.textContent = key;
+
+          const description = document.createElement("dd");
+          description.textContent =
+            value !== null && typeof value === "object"
+              ? JSON.stringify(value)
+              : String(value);
+
+          propertyList.append(term, description);
+        });
+        popupContent.appendChild(propertyList);
+
+        if (activePopup) {
+          activePopup.remove();
+        }
+
+        activePopup = new maplibregl.Popup({ closeButton: true, offset: 12 })
+          .setLngLat(event.lngLat)
+          .setDOMContent(popupContent)
+          .addTo(map);
+      }
+
+      map.on("load", () => {
+        map.addSource("bandung-tiles", {
+          type: "vector",
+          tiles: [tileUrl],
+          minzoom: 10,
+          maxzoom: 15
+        });
+
+        map.addLayer({
+          id: "bandung-polygons",
+          type: "fill",
+          source: "bandung-tiles",
+          "source-layer": "bandung",
+          filter: ["==", ["get", "kind"], "polygon"],
+          paint: {
+            "fill-color": "#10b981",
+            "fill-opacity": 0.35,
+            "fill-outline-color": "#047857"
+          }
+        });
+
+        map.addLayer({
+          id: "bandung-lines",
+          type: "line",
+          source: "bandung-tiles",
+          "source-layer": "bandung",
+          filter: ["==", ["get", "kind"], "line"],
+          paint: {
+            "line-color": "#4f46e5",
+            "line-width": 3,
+            "line-opacity": 0.92
+          }
+        });
+
+        map.addLayer({
+          id: "bandung-points",
+          type: "circle",
+          source: "bandung-tiles",
+          "source-layer": "bandung",
+          filter: ["==", ["get", "kind"], "point"],
+          paint: {
+            "circle-radius": 7,
+            "circle-color": "#f43f5e",
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 2.5
+          }
+        });
+
+        layerToggles.forEach(([toggleId, layerId]) => {
+          const toggle = document.getElementById(toggleId);
+          toggle.addEventListener("change", () => {
+            map.setLayoutProperty(
+              layerId,
+              "visibility",
+              toggle.checked ? "visible" : "none"
+            );
+          });
+        });
+
+        map.on("click", (event) => {
+          const features = map.queryRenderedFeatures(event.point, {
+            layers: interactiveLayers
+          });
+          if (features.length > 0) {
+            showFeaturePopup(event, features[0], features[0].layer.id);
+          }
+        });
+
+        interactiveLayers.forEach((layerId) => {
+          map.on("mouseenter", layerId, () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", layerId, () => {
+            map.getCanvas().style.cursor = "";
+          });
+        });
+
+        tileBoundariesToggle.addEventListener("change", () => {
+          map.showTileBoundaries = tileBoundariesToggle.checked;
+        });
+
+        document
+          .getElementById("reset-camera")
+          .addEventListener("click", () => {
+            map.flyTo({
+              center: initialCamera.center,
+              zoom: initialCamera.zoom,
+              essential: true
+            });
+          });
+
+        updateTelemetry();
+        map.on("move", updateTelemetry);
+      });
+    </script>
+  </body>
+</html>
